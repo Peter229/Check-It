@@ -82,6 +82,7 @@ pub struct Game {
     down: bool,
     songs: HashMap<String, song::Song>,
     score: i32,
+    current_song: String,
 }
 
 impl Game {
@@ -93,7 +94,9 @@ impl Game {
         let images: HashMap<String, Image> = HashMap::new();
         let timer = Instant::now();
         let mut songs: HashMap<String, song::Song> = HashMap::new();
+        let current_song = "karin".to_string();
         songs.insert("karin".to_string(), song::Song::new());
+        songs.insert("xepher".to_string(), song::Song::new());
         Self {
             game_state: game_state::init_boot,
             images,
@@ -107,6 +110,7 @@ impl Game {
             down: false,
             songs,
             score: 0,
+            current_song,
         }
     }
 
@@ -117,7 +121,9 @@ impl Game {
         let images: HashMap<String, Image> = HashMap::new();
         let timer = Instant::now();
         let mut songs: HashMap<String, song::Song> = HashMap::new();
+        let current_song = "karin".to_string();
         songs.insert("karin".to_string(), song::Song::new());
+        songs.insert("xepher".to_string(), song::Song::new());
         Self {
             game_state: game_state::web_load,
             images,
@@ -131,6 +137,7 @@ impl Game {
             down: false,
             songs,
             score: 0,
+            current_song,
         }
     }
 
@@ -235,19 +242,18 @@ impl Game {
     //Song finished
     async fn render_song_finish(&mut self) {
 
-        /*let mut file = File::create("karin.txt").unwrap();
+        /*let mut file = File::create("xepher.txt").unwrap();
         let mut file_contents: String = String::from("");
-        for i in 0..(self.songs.get(&"karin".to_string()).unwrap().keys.len()) {
-            let (mut a, mut b) = self.songs.get(&"karin".to_string()).unwrap().keys[i];
+        for i in 0..(self.songs.get(&"xepher".to_string()).unwrap().keys.len()) {
+            let (mut a, mut b) = self.songs.get(&"xepher".to_string()).unwrap().keys[i];
             file_contents.push_str(&a.to_string());
             file_contents.push_str(",");
             file_contents.push_str(&b.to_string());
-            if i < self.songs.get(&"karin".to_string()).unwrap().keys.len() - 1 {
+            if i < self.songs.get(&"xepher".to_string()).unwrap().keys.len() - 1 {
                 file_contents.push_str("\n");
             }
         }
         file.write_all(&file_contents.into_bytes()).unwrap();*/
-        self.score = 0;
         self.game_state = game_state::main_menu;
     }
 
@@ -256,19 +262,19 @@ impl Game {
     fn calulate_song_game_screen_play(&mut self, dir: i32) {
 
         let mut hit: bool = false;
-        let temp_len = self.songs.get(&"karin".to_string()).unwrap().keys.len() as i32;
+        let temp_len = self.songs.get(&self.current_song).unwrap().keys.len() as i32;
         let temp_time = (self.timer.elapsed().as_millis() as i32) - TIME_OFFSET;
-        self.songs.get_mut(&"karin".to_string()).unwrap().keys.retain(|&(i, o)| i > temp_time);
-        let temp_len_2 = self.songs.get(&"karin".to_string()).unwrap().keys.len() as i32;
+        self.songs.get_mut(&self.current_song).unwrap().keys.retain(|&(i, o)| i > temp_time);
+        let temp_len_2 = self.songs.get(&self.current_song).unwrap().keys.len() as i32;
         self.score = self.score - (300 * (temp_len - temp_len_2));
-        if self.songs.get(&"karin".to_string()).unwrap().keys.len() == 0 {
+        if self.songs.get(&self.current_song).unwrap().keys.len() == 0 {
 
             self.score = self.score - 300;
         } 
         else {
-            for i in 0..(self.songs.get(&"karin".to_string()).unwrap().keys.len()) {
+            for i in 0..(self.songs.get(&self.current_song).unwrap().keys.len()) {
 
-                let (time, pos) = self.songs.get(&"karin".to_string()).unwrap().keys[i];
+                let (time, pos) = self.songs.get(&self.current_song).unwrap().keys[i];
                 if time > (self.timer.elapsed().as_millis() as i32) + TIME_OFFSET {
                     //Early
                     self.score = self.score - 300;
@@ -278,7 +284,7 @@ impl Game {
                     //On time
                     if dir == pos {
                         self.score = self.score + 150;
-                        self.songs.get_mut(&"karin".to_string()).unwrap().keys.remove(i);
+                        self.songs.get_mut(&self.current_song).unwrap().keys.remove(i);
                         break;
                     }
                 }
@@ -288,41 +294,41 @@ impl Game {
 
     fn input_song_game_screen_play(&mut self, key: KeyboardEvent) {
 
-        if key.key() == Key::D {
+        if key.key() == Key::D || key.key() == Key::Left {
             if key.is_down() {
                 self.left = true;
                 self.calulate_song_game_screen_play(song::LEFT);
-                //self.songs.get_mut(&"karin".to_string()).unwrap().keys.push((self.timer.elapsed().as_millis() as i32, song::LEFT));
+                //self.songs.get_mut(&"xepher".to_string()).unwrap().keys.push((self.timer.elapsed().as_millis() as i32, song::LEFT));
             }
             else {
                 self.left = false;
             }
         }
-        else if key.key() == Key::F {
+        else if key.key() == Key::F || key.key() == Key::Down {
             if key.is_down() {
                 self.down = true;
                 self.calulate_song_game_screen_play(song::DOWN);
-                //self.songs.get_mut(&"karin".to_string()).unwrap().keys.push((self.timer.elapsed().as_millis() as i32, song::DOWN));
+                //self.songs.get_mut(&"xepher".to_string()).unwrap().keys.push((self.timer.elapsed().as_millis() as i32, song::DOWN));
             }
             else {
                 self.down = false;
             }
         }
-        else if key.key() == Key::J {
+        else if key.key() == Key::J || key.key() == Key::Up {
             if key.is_down() {
                 self.up = true;
                 self.calulate_song_game_screen_play(song::UP);
-                //self.songs.get_mut(&"karin".to_string()).unwrap().keys.push((self.timer.elapsed().as_millis() as i32, song::UP));
+                //self.songs.get_mut(&"xepher".to_string()).unwrap().keys.push((self.timer.elapsed().as_millis() as i32, song::UP));
             }
             else {
                 self.up = false;
             }
         }
-        else if key.key() == Key::K {
+        else if key.key() == Key::K || key.key() == Key::Right {
             if key.is_down() {
                 self.right = true;
                 self.calulate_song_game_screen_play(song::RIGHT);
-                //self.songs.get_mut(&"karin".to_string()).unwrap().keys.push((self.timer.elapsed().as_millis() as i32, song::RIGHT));
+                //self.songs.get_mut(&"xepher".to_string()).unwrap().keys.push((self.timer.elapsed().as_millis() as i32, song::RIGHT));
             }
             else {
                 self.right = false;
@@ -368,18 +374,17 @@ impl Game {
             gfx.draw_image(&self.images.get(&"right_hud".to_string()).unwrap(), region);
         }
 
-        let temp_len = self.songs.get(&"karin".to_string()).unwrap().keys.len() as i32;
+        let temp_len = self.songs.get(&self.current_song).unwrap().keys.len() as i32;
         let temp_time = (self.timer.elapsed().as_millis() as i32) - TIME_OFFSET;
-        self.songs.get_mut(&"karin".to_string()).unwrap().keys.retain(|&(i, o)| i > temp_time);
-        let temp_len_2 = self.songs.get(&"karin".to_string()).unwrap().keys.len() as i32;
+        self.songs.get_mut(&self.current_song).unwrap().keys.retain(|&(i, o)| i > temp_time);
+        let temp_len_2 = self.songs.get(&self.current_song).unwrap().keys.len() as i32;
         self.score = self.score - (300 * (temp_len - temp_len_2));
 
         let max_to_render: usize = 24;
 
-        //gfx.set_view(Transform::translate(Vector::new(0.0, -(self.timer.elapsed().as_millis() as f32))));
         gfx.set_view(Transform::translate(Vector::new(0.0, (self.timer.elapsed().as_millis() as f32))));
-        for i in 0..(max_to_render.min(self.songs.get(&"karin".to_string()).unwrap().keys.len())) {
-            let (time_in_millis, dir) = self.songs.get(&"karin".to_string()).unwrap().keys[i];
+        for i in 0..(max_to_render.min(self.songs.get(&self.current_song).unwrap().keys.len())) {
+            let (time_in_millis, dir) = self.songs.get(&self.current_song).unwrap().keys[i];
             //println!("{}", time_in_millis);
             match dir {
 
@@ -459,13 +464,16 @@ impl Game {
             songs::karin => {
                 self.audio.play((audio::SINK_1, "karin".to_string(), audio::PAUSE));
                 self.audio.play((audio::SINK_1, "karin.mp3".to_string(), audio::LOAD));
+                self.songs.get_mut(&"karin".to_string()).unwrap().reload("karin".to_string());
             },
             songs::xepher => {
                 self.audio.play((audio::SINK_1, "xepher".to_string(), audio::PAUSE));
                 self.audio.play((audio::SINK_1, "xepher.mp3".to_string(), audio::LOAD));
+                self.songs.get_mut(&"xepher".to_string()).unwrap().reload("xepher".to_string());
             },
             _ => (),
         }
+        self.score = 0;
         self.game_state = game_state::song_game_screen_start;
     }
 
@@ -496,9 +504,11 @@ impl Game {
 
                 songs::karin => {
                     self.game_state = game_state::load_song;
+                    self.current_song = "karin".to_string();
                 },
                 songs::xepher => {
                     self.game_state = game_state::load_song;
+                    self.current_song = "xepher".to_string();
                 },
                 _ => (),
             }
