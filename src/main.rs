@@ -254,6 +254,10 @@ impl Game {
             }
         }
         file.write_all(&file_contents.into_bytes()).unwrap();*/
+        self.left = false;
+        self.right = false;
+        self.up = false;
+        self.down = false;
         self.game_state = game_state::main_menu;
     }
 
@@ -409,7 +413,7 @@ impl Game {
         }
         gfx.set_view(Transform::translate(Vector::new(0.0, 0.0)));
 
-        if self.timer.elapsed().as_millis() >= 270000 {
+        if self.songs.get(&self.current_song).unwrap().keys.len() < 1 {
 
             self.game_state = game_state::song_finish;
         }
